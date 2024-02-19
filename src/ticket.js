@@ -1,8 +1,11 @@
 const userOps = require("./user");
 
 let ticketList = [];
+let oldTickets = [];
 const getTickets = () => ticketList;
+const getOldTickets = () => oldTickets;
 const clearTickets = () => {ticketList = []};
+const clearOldTickets = () => {oldTickets = []};
 const submitTicket = (username, amount, description) => {
     let user = userOps.getUser(username);
     if(!user) return "User doesn't exist";
@@ -18,9 +21,21 @@ const submitTicket = (username, amount, description) => {
     ticketList.push(newTicket);
     return `User ${username} submitted ticket successfully`;
 };
+const processTicket = (username, approved=true) => {
+    let user = userOps.getUser(username);
+    if(!user) return "User doesn't exist";
+    if(user.role !== "manager") return "Only managers can process tickets";
+    let ticket = ticketList.splice(0, 1)[0];
+    ticket.status = approved ? "APPROVED" : "DENIED";
+    oldTickets.push(ticket);
+    return (approved ? "Ticket has been approved" : "Ticket has been denied"); 
+}
 
 module.exports = {
     getTickets,
+    getOldTickets,
     clearTickets,
-    submitTicket
+    clearOldTickets,
+    submitTicket,
+    processTicket
 }
