@@ -30,6 +30,19 @@ const processTicket = (username, approved=true) => {
     oldTickets.push(ticket);
     return (approved ? "Ticket has been approved" : "Ticket has been denied"); 
 }
+const ticketHistory = username => {
+    let user = userOps.getUser(username);
+    if(!user) return [];
+    if(user.role !== "employee") return [];
+    let history = [];
+    for(let i=0; i<oldTickets.length; i++){
+        if(oldTickets[i].submittedBy === username) history.push(oldTickets[i]);
+    }
+    for(let i=0; i<ticketList.length; i++){
+        if(ticketList[i].submittedBy === username) history.push(ticketList[i]);
+    }
+    return history;
+}
 
 module.exports = {
     getTickets,
@@ -37,5 +50,6 @@ module.exports = {
     clearTickets,
     clearOldTickets,
     submitTicket,
-    processTicket
+    processTicket,
+    ticketHistory
 }

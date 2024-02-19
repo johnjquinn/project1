@@ -69,4 +69,48 @@ describe("Processing Tickets", () => {
         expect(oldTickets.length).toBe(1);
         expect(oldTickets[0].status).toBe("DENIED");
     });
-})
+});
+describe("Ticket History", () => {
+    test("User exists but no tickets, should return empty", () => {
+        userOps.registerUser("employee", "pwd");
+        let hist = ticketOps.ticketHistory("employee");
+        expect(hist.length).toBe(0);
+    });
+    test("Tickets exist but not the user requesting history", () => {
+        userOps.registerUser("emp1", "pwd");
+        ticketOps.submitTicket("emp1", 100, "desc1");
+        ticketOps.submitTicket("emp1", 120, "desc2");
+        let hist1 = ticketOps.ticketHistory("emp1");
+        expect(hist1.length).toBe(2);
+        let hist2 = ticketOps.ticketHistory("emp2");
+        expect(hist2.length).toBe(0);
+    });
+    test("User submitted tickets, some of which are approved", () => {
+        userOps.registerUser("employee", "pwd");
+        userOps.registerUser("manager", "pwd", true);
+        ticketOps.submitTicket("employee", 100, "desc1");
+        ticketOps.submitTicket("employee", 120, "desc2");
+        ticketOps.submitTicket("employee", 140, "desc3");
+        ticketOps.processTicket("manager");
+        ticketOps.processTicket("manager", false)
+        let hist = ticketOps.ticketHistory("employee");
+        expect(hist.length).toBe(3);
+        expect(hist[0].status).toBe("APPROVED");
+        expect(hist[1].status).toBe("DENIED");
+        expect(hist[2].status).toBe("PENDING");
+    });
+    test("Two different users submitted tickets", () => {
+        userOps.registerUser("emp1", "pwd");
+        userOps.registerUser("emp2", "pwd");
+        userOps.registerUser("manager", "pwd", true);
+        ticketOps.submitTicket("emp1", 100, "desc1");
+        ticketOps.submitTicket("emp1", 120, "desc2");
+        ticketOps.submitTicket("emp2", 100, "desc3");
+        ticketOps.submitTicket("emp1", 140, "desc4");
+        ticketOps.submitTicket("emp2", 120, "desc5");
+        let hist1 = ticketOps.ticketHistory("emp1");
+        let hist2 = ticketOps.ticketHistory("emp2");
+        expect(hist1.length).toBe(3);
+        expect(hist2.length).toBe(2);
+    });
+});
