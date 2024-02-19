@@ -25,11 +25,6 @@ describe("Register Tests", () => {
         let users = userOps.getUsers();
         expect(users.length).toBe(0);
     });
-    test("Username and password but no valid role, should fail", () => {
-        userOps.registerUser("testuser", "testpasswd", "administrator");
-        let users = userOps.getUsers();
-        expect(users.length).toBe(0);
-    });
     test("Username and password as employee, should pass", () => {
         userOps.registerUser("testuser", "testpasswd");
         let users = userOps.getUsers();
@@ -40,7 +35,7 @@ describe("Register Tests", () => {
         expect(users[0].isActive).toBe(false);
     });
     test("Username and password as manager, should pass", () => {
-        userOps.registerUser("testuser", "testpasswd", "manager");
+        userOps.registerUser("testuser", "testpasswd", true);
         let users = userOps.getUsers();
         expect(users.length).toBe(1);
         expect(users[0].username).toBe("testuser");
