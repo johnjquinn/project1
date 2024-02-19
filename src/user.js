@@ -1,17 +1,21 @@
 let userList = [];
+const getUsers = () => userList;
+const clearUsers = () => {
+    userList = [];
+}
 const getUser = username => {
-    if(!username || username.length === 0) return null;
-    userList.forEach(user => {
-        if(user.username === username) return user;
-    });
+    for(let i=0; i<userList.length; i++){
+        if(userList[i].username === username) return userList[i];
+    }
     return null;
 }
-const getAllUsers = () => userList;
+
 const registerUser = (username, password, role="employee") => {
-    if(!username || !password || username.length === 0 || password.length === 0) return `You must submit a username and password`;
-    if(!(role === "employee" || role === "manager")) return `Invalid role`;
-    let found = getUser(username);
-    if(found) return `User ${username} exists already`;
+    if(!username || !password) return `You must provide a username and password`;
+    if(username.length === 0 || password.length === 0) return `Username and/or password cannot be empty`;
+    if(role !== "employee" && role !== "manager") return `Invalid role`;
+    let duplicate = getUser(username);
+    if(duplicate) return `User already exists`;
     let newUser = {
         username,
         password,
@@ -23,17 +27,18 @@ const registerUser = (username, password, role="employee") => {
 }
 
 const loginUser = (username, password) => {
-    if(!username || !password || username.length === 0 || password.length === 0) return `You must enter a username and password`;
+    if(!username || !password) return `You must provide a username and password`;
+    if(username.length === 0 || password.length === 0) return `Username and/or password cannot be empty`;
     let found = getUser(username);
+    if(!found) return `User does not exist`;
     if(found.password !== password) return `Incorrect password`;
     found.isActive = !found.isActive;
     return `Login toggled successfully for user ${username}`;
 }
 
 module.exports = {
-    userList,
-    getUser,
-    getAllUsers,
+    getUsers,
+    clearUsers,
     registerUser,
     loginUser
 }
