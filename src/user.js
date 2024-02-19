@@ -1,4 +1,4 @@
-const userList = [];
+let userList = [];
 const getUser = username => {
     if(!username || username.length === 0) return null;
     userList.forEach(user => {

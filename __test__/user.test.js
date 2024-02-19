@@ -59,5 +59,5 @@ describe("Login Tests", () => {
 })
 
 afterEach(() => {
-    userOps.userList = [];
+    console.log(userOps.userList);
 })
