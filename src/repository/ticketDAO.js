@@ -38,7 +38,7 @@ const postTicket = async Ticket => {
     });
     try {
         const data = await documentClient.send(command);
-        return data;
+        return data ? true : false;
     } catch (error) {
         logger.error(error);
     }
@@ -55,7 +55,7 @@ const updateTicket = async (ticket_id, newTicket) => {
     });
     try {
         const data = await documentClient.send(command);
-        return data;
+        return data ? true : false;
     } catch (error) {
         logger.error(error);
     }
@@ -69,7 +69,7 @@ const deleteTicket = async ticket_id => {
     });
     try {
         const data = await documentClient.send(command);
-        return data;
+        return data ? true : false;
     } catch (error) {
         logger.error(error);
     }

@@ -6,7 +6,7 @@ const getAllTickets = async () => {
 };
 
 const getTicket = async ticket_id => {
-    if(!ticket_id) return null;
+    if(ticket_id == null) return null;
     const data = await ticketDAO.getTicket(ticket_id);
     return data;
 };
@@ -41,15 +41,23 @@ const addTicket = async Ticket => {
 };
 
 const updateTicket = async (ticket_id, newTicket) => {
-    if(!ticket_id || !newTicket) return null;
+    if(ticket_id == null || !newTicket) return null;
     const data = await ticketDAO.updateTicket(ticket_id, newTicket);
     return data;
 };
 
 const deleteTicket = async ticket_id => {
-    if(!ticket_id) return null;
+    if(ticket_id == null) return null;
     const data = await ticketDAO.deleteTicket(ticket_id);
     return data;
+};
+
+const processTicket = async (ticket_id, approved) => {
+    if(ticket_id == null || approved == null) return null;
+    const foundTicket = await getTicket(ticket_id);
+    if(!foundTicket) return null;
+    foundTicket.status = approved ? "APPROVED" : "DENIED";
+    return await updateTicket(ticket_id, foundTicket);
 };
 
 module.exports = {
@@ -59,5 +67,6 @@ module.exports = {
     getTicketsBySubmitter,
     addTicket,
     updateTicket,
-    deleteTicket
+    deleteTicket,
+    processTicket
 };
