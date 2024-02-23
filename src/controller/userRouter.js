@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
         return res.status(200).json({message: "Got user", user});
     }
     else{
-        const users = userService.getAllUsers();
+        const users = await userService.getAllUsers();
         return res.status(200).json({message: "Got all users", users});
     }
 });
@@ -39,7 +39,7 @@ router.put('/', async (req, res) => {
 router.delete('/', async (req, res) => {
     const idQuery = req.query.user_id;
     if(idQuery){
-        const data = await userService.deleteUser(user_id);
+        const data = await userService.deleteUser(idQuery);
         if(data) return res.status(200).json({message: "Deleted user", data});
         return res.status(400).json({message: `Could not delete user with id ${idQuery}`});
     }

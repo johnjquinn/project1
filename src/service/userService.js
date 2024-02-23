@@ -16,7 +16,14 @@ const getUserByUsername = async username => {
 };
 
 const addUser = async User => {
-    const data = await userDAO.postUser(User);
+    const user_id = await userDAO.countUsers();
+    const newUser = {
+        user_id,
+        username: User.username,
+        password: User.password,
+        role: User.role
+    };
+    const data = await userDAO.postUser(newUser);
     return data;
 };
 
