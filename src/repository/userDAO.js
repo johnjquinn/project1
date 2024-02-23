@@ -1,4 +1,4 @@
-const { DynamoDBClient, QueryCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, QueryCommand, ScanCommand } = require("@aws-sdk/client-dynamodb");
 const { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, DeleteCommand } = require("@aws-sdk/lib-dynamodb");
 const logger = require("../util/logger");
 const client = new DynamoDBClient({ region: "us-east-2" });
@@ -30,11 +30,10 @@ const getUser = async user_id => {
     }
 };
 const getUserByUsername = async username => {
-    const command = new ScanCommand({
+    const command = new QueryCommand({
         TableName,
-        FilterExpression: "#n = :n",
-        ExpressionAttributeNames: {"#n": "username"},
-        ExpressionAttributeValues: {":n": username}
+        KeyConditionExpression: "username = :u",
+        ExpressionAttributeValues: {":u" : username}
     });
     try {
         const data = await documentClient.send(command);
