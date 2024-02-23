@@ -1,5 +1,5 @@
-const { DynamoDBClient} = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, DeleteCommand, QueryCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand, DeleteCommand, ScanCommand } = require("@aws-sdk/lib-dynamodb");
 const logger = require("../util/logger");
 const client = new DynamoDBClient({ region: "us-east-2" });
 const documentClient = DynamoDBDocumentClient.from(client);
@@ -31,30 +31,6 @@ const getUser = async user_id => {
         logger.error(error);
     }
 };
-const getUserByUsername = async username => {
-    const command = new ScanCommand({
-        TableName,
-        FilterExpression: "username = :u",
-        ExpressionAttributeValues: {":u" : username}
-    });
-    try {
-        const data = await documentClient.send(command);
-        return data.Items[0];
-    } catch (error) {
-        logger.error(error);
-    }
-};
-const countUsers = async () => {
-    const command = new ScanCommand({
-        TableName
-    });
-    try {
-        const data = await documentClient.send(command);
-        return data.Count;
-    } catch (error) {
-        logger.error(error);
-    }
-}
 const postUser = async User => {
     const command = new PutCommand({
         TableName,
@@ -62,7 +38,7 @@ const postUser = async User => {
     });
     try {
         const data = await documentClient.send(command);
-        return data;
+        return data ? true : false;
     } catch (error) {
         logger.error(error);
     }
@@ -79,7 +55,7 @@ const updateUser = async (user_id, newUser) => {
     });
     try {
         const data = await documentClient.send(command);
-        return data;
+        return data ? true : false;
     } catch (error) {
         logger.error(error);
     }
@@ -93,7 +69,7 @@ const deleteUser = async user_id => {
     });
     try {
         const data = await documentClient.send(command);
-        return data;
+        return data ? true : false;
     } catch (error) {
         logger.error(error);
     }
@@ -102,8 +78,6 @@ const deleteUser = async user_id => {
 module.exports = {
     getAllUsers,
     getUser,
-    getUserByUsername,
-    countUsers,
     postUser,
     updateUser,
     deleteUser

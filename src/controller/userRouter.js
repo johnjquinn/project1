@@ -23,6 +23,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     const data = await userService.addUser(req.body);
     if(data) return res.status(201).json({message: "Created user", data});
+    if(!req.body) return res.status(400).json({message: "You must provide a username, password, and role"});
     return res.status(400).json({message: "Was not created", receivedData: req.body});
 });
 
@@ -31,6 +32,7 @@ router.put('/', async (req, res) => {
     if(idQuery){
         const data = await userService.updateUser(idQuery, req.body);
         if(data) return res.status(200).json({message: "Updated user", data});
+        if(!req.body) return res.status(400).json({message: "You must provide a new username, password, and role"});
         return res.status(400).json({message: `Could not update user with id ${idQuery}`});
     }
     return res.status(400).json({message: "You must present a user id"});

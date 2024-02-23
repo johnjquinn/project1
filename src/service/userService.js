@@ -6,17 +6,22 @@ const getAllUsers = async () => {
 };
 
 const getUser = async user_id => {
+    if(!user_id) return null;
     const data = await userDAO.getUser(user_id);
     return data;
 };
 
 const getUserByUsername = async username => {
-    const data = await userDAO.getUserByUsername(username);
-    return data;
+    if(!username) return null;
+    const totalUsers = await userDAO.getAllUsers();
+    const found = totalUsers.filter(user => {return user.username === username});
+    return found[0];
 };
 
 const addUser = async User => {
-    const user_id = await userDAO.countUsers();
+    if(!User) return null;
+    const totalUsers = await userDAO.getAllUsers();
+    const user_id = totalUsers.length;
     const newUser = {
         user_id,
         username: User.username,
@@ -28,11 +33,13 @@ const addUser = async User => {
 };
 
 const updateUser = async (user_id, newUser) => {
+    if(!user_id || !newUser) return null;
     const data = await userDAO.updateUser(user_id, newUser);
     return data;
 };
 
 const deleteUser = async user_id => {
+    if(!user_id) return null;
     const data = await userDAO.deleteUser(user_id);
     return data;
 };
