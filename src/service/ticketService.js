@@ -40,12 +40,6 @@ const addTicket = async Ticket => {
     return data;
 };
 
-const updateTicket = async (ticket_id, newTicket) => {
-    if(ticket_id == null || !newTicket) return null;
-    const data = await ticketDAO.updateTicket(ticket_id, newTicket);
-    return data;
-};
-
 const deleteTicket = async ticket_id => {
     if(ticket_id == null) return null;
     const data = await ticketDAO.deleteTicket(ticket_id);
@@ -66,7 +60,6 @@ module.exports = {
     getTicketsByStatus,
     getTicketsBySubmitter,
     addTicket,
-    updateTicket,
     deleteTicket,
     processTicket
 };

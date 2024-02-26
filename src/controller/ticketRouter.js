@@ -1,9 +1,35 @@
 const ticketService = require('../service/ticketService');
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+dotenv.config();
+const secretKey = process.env.P1_SECRET_KEY;
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+const authToken = (req, res, next) => {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+    if(!token) return res.status(401).json({message: "Unauthorized Access"});
+    jwt.verify(token, secretKey, (err, user) => {
+        if(err) return res.status(403).json({message: "Forbidden Access"});
+        req.user = user;
+        next();
+    });
+};
+
+const authManagerToken = (req, res, next) => {
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+    if(!token) return res.status(401).json({message: "Unauthorized Access"});
+    jwt.verify(token, secretKey, (err, user) => {
+        if(err || user.role !== "manager") return res.status(403).json({message: "Forbidden Access"});
+        req.user = user;
+        next();
+    });
+};
+
+router.get('/', authToken, async (req, res) => {
     const idQuery = req.query.ticket_id;
     const submitterQuery = req.query.submitted_by;
     const statusQuery = req.query.status;
@@ -22,22 +48,25 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
-    const data = await ticketService.addTicket(req.body);
+router.post('/', authToken, async (req, res) => {
+    if(req.user.role !== "employee") return res.status(403).json({message: "Only employees may submit new tickets", receivedUser: req.user});
+    const newTicket = {
+        amount: req.body.amount,
+        description: req.body.description,
+        submitted_by: req.user.username
+    };
+    const data = await ticketService.addTicket(newTicket);
     if(data) return res.status(201).json({message: "Created ticket", data});
-    if(!req.body) return res.status(400).json({message: "You must provide an amount, description, and the submitter"});
+    if(!req.body) return res.status(400).json({message: "You must provide an amount and description"});
     return res.status(400).json({message: "Was not created", receivedData: req.body});
 });
 
-router.put('/', async (req, res) => {
-    const idQuery = req.query.ticket_id;
-    if(idQuery){
-        const data = await ticketService.updateTicket(idQuery, req.body);
-        if(data) return res.status({message: "Updated ticket", data});
-        if(!req.body) return res.status(400).json({message: "You must provide a new amount, description, status, and submitter"});
-        return res.status(400).json({message: `Could not update ticket with id ${idQuery}`});
-    }
-    return res.status(400).json({message: "You must provide a ticket id"});
+router.put('/', authManagerToken, async (req, res) => {
+    const ticket_id = req.body.ticket_id;
+    const approved = req.body.approved;
+    const data = await ticketService.processTicket(ticket_id, approved);
+    if(!data) return res.status(400).json({message: `Could not update ticket #${ticket_id} to status of ${status}`, receivedData: req.body});
+    return res.status(200).json({message: `Ticket has been ${approved ? "APPROVED" : "DENIED"}`, data});
 });
 
 router.delete('/', async (req, res) => {
@@ -49,5 +78,6 @@ router.delete('/', async (req, res) => {
     }
     return res.status(400).json({message: "You must provide a ticket id"});
 });
+
 
 module.exports = router;

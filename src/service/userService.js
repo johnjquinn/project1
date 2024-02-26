@@ -1,6 +1,8 @@
 const userDAO = require('../repository/userDAO');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const dotenv = require('dotenv');
+dotenv.config();
 
 const saltRounds = 10;
 const secretKey = process.env.P1_SECRET_KEY;
@@ -23,30 +25,16 @@ const getUserByUsername = async username => {
     return found[0];
 };
 
-const addUser = async User => {
-    if(!User) return null;
-    const totalUsers = await userDAO.getAllUsers();
-    const user_id = totalUsers.length;
-    const newUser = {
-        user_id,
-        username: User.username,
-        password: User.password,
-        role: User.role
-    };
-    const data = await userDAO.postUser(newUser);
-    return data;
-};
-
-const registerUser = async User => {
-    if(!User) return null;
+const registerUser = async (username, password, manager=false) => {
+    if(!username || !password) return null;
     let encPassword = await bcrypt.hash(User.password, saltRounds);
     const totalUsers = await userDAO.getAllUsers();
     const user_id = totalUsers.length;
     const newUser = {
         user_id,
-        username: User.username,
+        username: username,
         password: encPassword,
-        role: User.role
+        role: manager ? "manager" : "employee"
     };
     const data = await userDAO.postUser(newUser);
     return data;
@@ -54,7 +42,7 @@ const registerUser = async User => {
 
 const loginUser = async (username, password) => {
     if(!username || !password) return null;
-    const foundUser = getUserByUsername(username);
+    const foundUser = await getUserByUsername(username);
     if(!foundUser || !(await bcrypt.compare(password, foundUser.password))) return null;
     const token = jwt.sign(
         {
@@ -95,7 +83,6 @@ module.exports = {
     getAllUsers,
     getUser,
     getUserByUsername,
-    addUser,
     registerUser,
     loginUser,
     authenticateUser,

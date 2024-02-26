@@ -19,23 +19,19 @@ router.get('/', async (req, res) => {
     }
 });
 
-//WILL BE REPLACED BY REGISTER FUNCTION IN APP.JS
 router.post('/', async (req, res) => {
-    const data = await userService.addUser(req.body);
+    const data = await userService.registerUser(req.body);
     if(data) return res.status(201).json({message: "Created user", data});
     if(!req.body) return res.status(400).json({message: "You must provide a username, password, and role"});
     return res.status(400).json({message: "Was not created", receivedData: req.body});
 });
 
+
 router.put('/', async (req, res) => {
-    const idQuery = req.query.user_id;
-    if(idQuery){
-        const data = await userService.updateUser(idQuery, req.body);
-        if(data) return res.status(200).json({message: "Updated user", data});
-        if(!req.body) return res.status(400).json({message: "You must provide a new username, password, and role"});
-        return res.status(400).json({message: `Could not update user with id ${idQuery}`});
-    }
-    return res.status(400).json({message: "You must present a user id"});
+    if(!req.body) return res.status(400).json({message: "You must provide a username and password"});
+    const token = await userService.loginUser(req.body.username, req.body.password);
+    if(!token) return res.status(400).json({message: "Username and/or password is incorrect"});
+    return res.status(200).json({message: "User logged in successfully", token});
 });
 
 router.delete('/', async (req, res) => {
