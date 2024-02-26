@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
     const isManager = req.body.manager;
-    if(!username || !password) return res.status(400).json({message: "You must provide a username and password"});
+    if(!username || !password) return res.status(400).json({message: "You must provide a unique username and password"});
     const data = await userService.registerUser(username, password, isManager);
     if(data) return res.status(201).json({message: "Created user"});
     return res.status(400).json({message: "Was not created", receivedData: req.body});

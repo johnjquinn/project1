@@ -51,7 +51,7 @@ const processTicket = async (ticket_id, approved) => {
     const foundTicket = await getTicket(ticket_id);
     if(!foundTicket) return null;
     foundTicket.status = approved ? "APPROVED" : "DENIED";
-    return await updateTicket(ticket_id, foundTicket);
+    return await ticketDAO.updateTicket(ticket_id, foundTicket);
 };
 
 module.exports = {

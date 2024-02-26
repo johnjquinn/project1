@@ -2,7 +2,5 @@
 A backend that manages user data and tickets using NodeJS.
 
 # TODO:
-    - Test features using postman
-    - Fix potential bugs involving jwt and/or bcrypt
-    - Refactor express endpoints
-    - Record Presentation video
+    - Properly Handle Non unique username
+    - Separate get tickets endpoint between employees and managers

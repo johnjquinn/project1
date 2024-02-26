@@ -27,7 +27,9 @@ const getUserByUsername = async username => {
 
 const registerUser = async (username, password, manager=false) => {
     if(!username || !password) return null;
-    let encPassword = await bcrypt.hash(User.password, saltRounds);
+    let extantUser = await getUserByUsername(username);
+    if(extantUser) return null;
+    let encPassword = await bcrypt.hash(password, saltRounds);
     const totalUsers = await userDAO.getAllUsers();
     const user_id = totalUsers.length;
     const newUser = {
