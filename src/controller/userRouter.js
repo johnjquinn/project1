@@ -20,15 +20,20 @@ router.get('/', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-    const data = await userService.registerUser(req.body);
-    if(data) return res.status(201).json({message: "Created user", data});
-    if(!req.body) return res.status(400).json({message: "You must provide a username, password, and role"});
+    const username = req.body.username;
+    const password = req.body.password;
+    const isManager = req.body.manager;
+    if(!username || !password) return res.status(400).json({message: "You must provide a username and password"});
+    const data = await userService.registerUser(username, password, isManager);
+    if(data) return res.status(201).json({message: "Created user"});
     return res.status(400).json({message: "Was not created", receivedData: req.body});
 });
 
 
 router.put('/', async (req, res) => {
-    if(!req.body) return res.status(400).json({message: "You must provide a username and password"});
+    const username = req.body.username;
+    const password = req.body.password;
+    if(!username || !password) return res.status(400).json({message: "You must provide a username and password"});
     const token = await userService.loginUser(req.body.username, req.body.password);
     if(!token) return res.status(400).json({message: "Username and/or password is incorrect"});
     return res.status(200).json({message: "User logged in successfully", token});
