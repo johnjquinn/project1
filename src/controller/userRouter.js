@@ -4,12 +4,8 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-    const idQuery = req.query.user_id;
     const usernameQuery = req.query.username;
-    if(idQuery){
-        const user = await userService.getUser(idQuery);
-        return res.status(200).json({message: "Got user", user});
-    }else if(usernameQuery){
+    if(usernameQuery){
         const user = await userService.getUserByUsername(usernameQuery);
         return res.status(200).json({message: "Got user", user});
     }
@@ -43,7 +39,7 @@ router.delete('/', async (req, res) => {
     const idQuery = req.query.user_id;
     if(idQuery){
         const data = await userService.deleteUser(idQuery);
-        if(data) return res.status(200).json({message: "Deleted user", data});
+        if(data) return res.status(200).json({message: "Deleted user"});
         return res.status(400).json({message: `Could not delete user with id ${idQuery}`});
     }
     return res.status(400).json({message: "You must present a user id"});

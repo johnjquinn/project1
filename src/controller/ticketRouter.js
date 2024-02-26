@@ -32,11 +32,11 @@ const authManagerToken = (req, res, next) => {
 router.get('/', authToken, async (req, res) => {
     if(req.user.role === "manager"){
         const tickets = await ticketService.getTicketsByStatus("PENDING");
-        return res.status(200).json({message: "Got tickets", tickets});
+        return res.status(200).json({message: "Got pending tickets", tickets});
     }
     else{
         const tickets = await ticketService.getTicketsBySubmitter(req.user.username);
-        return res.status(200).json({message: "Got tickets", tickets});
+        return res.status(200).json({message: `Got tickets submitted by ${req.user.username}`, tickets});
     }
 });
 
@@ -57,11 +57,11 @@ router.put('/', authManagerToken, async (req, res) => {
     const ticket_id = req.body.ticket_id;
     const approved = req.body.approved;
     const data = await ticketService.processTicket(ticket_id, approved);
-    if(!data) return res.status(400).json({message: `Could not update ticket #${ticket_id} to status of ${status}`, receivedData: req.body});
+    if(!data) return res.status(400).json({message: `Ticket has already been processed`, receivedData: req.body});
     return res.status(200).json({message: `Ticket has been ${approved ? "APPROVED" : "DENIED"}`});
 });
 
-router.delete('/', async (req, res) => {
+router.delete('/', authManagerToken, async (req, res) => {
     const idQuery = req.query.ticket_id;
     if(idQuery){
         const data = await ticketService.deleteTicket(idQuery);

@@ -48,8 +48,10 @@ const deleteTicket = async ticket_id => {
 
 const processTicket = async (ticket_id, approved) => {
     if(ticket_id == null || approved == null) return null;
-    const foundTicket = await getTicket(ticket_id);
-    if(!foundTicket) return null;
+    const pendingTickets = await getTicketsByStatus("PENDING");
+    const filtered = pendingTickets.filter(ticket => {return ticket.ticket_id === ticket_id});
+    if(filtered.length === 0) return null;
+    const foundTicket = filtered[0];
     foundTicket.status = approved ? "APPROVED" : "DENIED";
     return await ticketDAO.updateTicket(ticket_id, foundTicket);
 };
