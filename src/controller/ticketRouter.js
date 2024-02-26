@@ -42,6 +42,7 @@ router.get('/', authToken, async (req, res) => {
 
 router.post('/', authToken, async (req, res) => {
     if(req.user.role !== "employee") return res.status(403).json({message: "Only employees may submit new tickets", receivedUser: req.user});
+    if(!req.body) return res.status(400).json({message: "You must provide an amount and description"});
     const newTicket = {
         amount: req.body.amount,
         description: req.body.description,
@@ -49,7 +50,6 @@ router.post('/', authToken, async (req, res) => {
     };
     const data = await ticketService.addTicket(newTicket);
     if(data) return res.status(201).json({message: "Created ticket"});
-    if(!req.body) return res.status(400).json({message: "You must provide an amount and description"});
     return res.status(400).json({message: "Was not created", receivedData: req.body});
 });
 
