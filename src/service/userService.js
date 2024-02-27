@@ -27,11 +27,11 @@ const getUserByUsername = async username => {
 
 const registerUser = async (username, password, manager=false) => {
     if(!username || !password) return null;
-    let extantUser = await getUserByUsername(username);
-    if(extantUser) return null;
-    let encPassword = await bcrypt.hash(password, saltRounds);
     const totalUsers = await userDAO.getAllUsers();
     const user_id = totalUsers.length;
+    let extantUsers = totalUsers.filter(user => {return user.username === username});
+    if(extantUsers.length !== 0) return null;
+    let encPassword = await bcrypt.hash(password, saltRounds);
     const newUser = {
         user_id,
         username: username,
@@ -61,18 +61,7 @@ const loginUser = async (username, password) => {
 
 const authenticateUser = token => {
     if(!token) return null;
-    let authd;
-    jwt.verify(token, secretKey, (err, user) => {
-        if(err) return null;
-        authd = user;
-    });
-    return authd;
-};
-
-const updateUser = async (user_id, newUser) => {
-    if(user_id == null || !newUser) return null;
-    const data = await userDAO.updateUser(user_id, newUser);
-    return data;
+    return jwt.verify(token, secretKey);
 };
 
 const deleteUser = async user_id => {
@@ -88,6 +77,5 @@ module.exports = {
     registerUser,
     loginUser,
     authenticateUser,
-    updateUser,
     deleteUser
 };

@@ -12,14 +12,14 @@ beforeEach(() => {
     jest.clearAllMocks();
 })
 
-describe('Getting All Users', () => {
-    test('This should return empty', async () => {
+describe('Getting Users', () => {
+    test('GetAllUsers: Should return empty', async () => {
         userDAO.getAllUsers.mockResolvedValue([]);
         const result = await userService.getAllUsers();
         expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
         expect(result).toStrictEqual([]);
     });
-    test('This should return one user', async () => {
+    test('GetAllUsers: Should return one user', async () => {
         const user = {
             user_id: 0,
             username: "testuser",
@@ -29,9 +29,10 @@ describe('Getting All Users', () => {
         userDAO.getAllUsers.mockResolvedValue([user]);
         const result = await userService.getAllUsers();
         expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
+        expect(result).toHaveLength(1);
         expect(result[0]).toStrictEqual(user);
     });
-    test('This should return two users', async () => {
+    test('GetAllUsers: Should return two users', async () => {
         const user0 = {
             user_id: 0,
             username: "testuser0",
@@ -47,172 +48,153 @@ describe('Getting All Users', () => {
         userDAO.getAllUsers.mockResolvedValue([user0, user1]);
         const result = await userService.getAllUsers();
         expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
-        expect(result.length).toBe(2);
+        expect(result).toHaveLength(2);
+        expect(result[0]).toStrictEqual(user0);
+        expect(result[1]).toStrictEqual(user1);
     });
-});
-
-describe('Getting One User', () => {
-    test('Adding two users but no user id', async () => {
-        const user0 = {
-            user_id: 0,
-            username: "testuser0",
-            password: "testpassword0",
-            role: "employee"
-        };
-        const user1 = {
-            user_id: 1,
-            username: "testuser1",
-            password: "testpassword1",
-            role: "manager"
-        };
-        userDAO.getUser.mockResolvedValue(user0);
+    test('GetUser: No user id, should return null', async () => {
         const result = await userService.getUser();
         expect(userDAO.getUser).toHaveBeenCalledTimes(0);
         expect(result).toBeNull();
     });
-    test('Adding two users, returning the first', async () => {
-        const user0 = {
+    test('GetUser: User id provided, should return one user', async () => {
+        const user = {
             user_id: 0,
             username: "testuser0",
             password: "testpassword0",
             role: "employee"
         };
-        const user1 = {
-            user_id: 1,
-            username: "testuser1",
-            password: "testpassword1",
-            role: "manager"
-        };
-        userDAO.getUser.mockResolvedValue(user0);
+        userDAO.getUser.mockResolvedValue(user);
         const result = await userService.getUser(0);
         expect(userDAO.getUser).toHaveBeenCalledTimes(1);
-        expect(result).toStrictEqual(user0);
+        expect(result).toStrictEqual(user);
     });
-    test('Adding two users, returning the second', async () => {
-        const user0 = {
-            user_id: 0,
-            username: "testuser0",
-            password: "testpassword0",
-            role: "employee"
-        };
-        const user1 = {
-            user_id: 1,
-            username: "testuser1",
-            password: "testpassword1",
-            role: "manager"
-        };
-        userDAO.getUser.mockResolvedValue(user1);
-        const result = await userService.getUser(1);
-        expect(userDAO.getUser).toHaveBeenCalledTimes(1);
-        expect(result).toStrictEqual(user1);
-    });
-    test('Adding two users, getting first one by username', async () => {
-        const user0 = {
-            user_id: 0,
-            username: "testuser0",
-            password: "testpassword0",
-            role: "employee"
-        };
-        const user1 = {
-            user_id: 1,
-            username: "testuser1",
-            password: "testpassword1",
-            role: "manager"
-        };
-        userDAO.getAllUsers.mockResolvedValue([user0, user1]);
-        const result = await userService.getUserByUsername("testuser0");
-        expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
-        expect(result).toStrictEqual(user0);
-    });
-});
-
-describe('Adding Users', () => {
-    test('Null data returning null', async () => {
-        userDAO.getAllUsers.mockResolvedValue([]);
-        const result = await userService.addUser();
+    test('GetUserByUsername: No username, should return null', async () => {
+        const result = await userService.getUserByUsername();
         expect(userDAO.getAllUsers).toHaveBeenCalledTimes(0);
         expect(result).toBeNull();
     });
-    test('Adding user', async () => {
-        userDAO.getAllUsers.mockResolvedValue([]);
-        userDAO.postUser.mockResolvedValue(true);
+    test('GetUserByUsername: Username provided but user doesnt exist, should return empty', async () => {
         const user = {
-            username: "testuser",
-            password: "testpasswd",
+            user_id: 0,
+            username: "testuser0",
+            password: "testpassword0",
             role: "employee"
         };
-        const result = await userService.addUser(user);
+        userDAO.getAllUsers.mockResolvedValue([user]);
+        const result = await userService.getUserByUsername("testuser");
         expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
-        expect(userDAO.postUser).toHaveBeenCalledTimes(1);
-        expect(result).toBe(true);
+        expect(result).toBeFalsy();
     });
-});
-
-describe('Updating Users', () => {
-    test('User id but no new user', async () => {
-        userDAO.updateUser.mockResolvedValue(false);
-        const result = await userService.updateUser(0);
-        expect(userDAO.updateUser).toHaveBeenCalledTimes(0);
-        expect(result).toBeNull();
-    });
-    test('User id and new user', async () => {
-        userDAO.updateUser.mockResolvedValue(true);
-        const newUser = {
-            username: "testuser23",
-            password: "kpowerq",
+    test('GetUserByUsername: Username provided, should return user', async () => {
+        const user = {
+            user_id: 0,
+            username: "testuser0",
+            password: "testpassword0",
             role: "employee"
         };
-        const result = await userService.updateUser(0, newUser);
-        expect(userDAO.updateUser).toHaveBeenCalledTimes(1);
-        expect(result).toBe(true);
+        userDAO.getAllUsers.mockResolvedValue([user]);
+        const result = await userService.getUserByUsername("testuser0");
+        expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
+        expect(result).toStrictEqual(user);
     });
 });
 
-describe('Deleting Users', () => {
-    test('No user id', async () => {
-        const result = await userService.deleteUser();
-        expect(userDAO.deleteUser).toHaveBeenCalledTimes(0);
-        expect(result).toBeNull();
-    });
-    test('User id present', async () => {
-        userDAO.deleteUser.mockResolvedValue(true);
-        const result = await userService.deleteUser(0);
-        expect(userDAO.deleteUser).toHaveBeenCalledTimes(1);
-        expect(result).toBe(true);
-    });
-});
-
-describe('Register and Login', () => {
-    test('Register with no data', async () => {
+describe('Registering Users', () => {
+    test('RegisterUser: No username or password, should return null', async () => {
         const result = await userService.registerUser();
         expect(bcrypt.hash).toHaveBeenCalledTimes(0);
         expect(userDAO.getAllUsers).toHaveBeenCalledTimes(0);
         expect(userDAO.postUser).toHaveBeenCalledTimes(0);
         expect(result).toBeNull();
     });
-    test('Register with data', async () => {
-        bcrypt.hash.mockResolvedValue("h iblkczbvwejrh");
-        userDAO.getAllUsers.mockResolvedValue([]);
-        userDAO.postUser.mockResolvedValue(true);
+    test('RegisterUser: Username provided but no password, should return null', async () => {
+        const result = await userService.registerUser("testuser");
+        expect(bcrypt.hash).toHaveBeenCalledTimes(0);
+        expect(userDAO.getAllUsers).toHaveBeenCalledTimes(0);
+        expect(userDAO.postUser).toHaveBeenCalledTimes(0);
+        expect(result).toBeNull();
+    });
+    test('RegisterUser: Username not unique, should return null', async () => {
         const user = {
             username: "testuser",
             password: "testpasswd",
             role: "employee"
         };
-        const result = await userService.registerUser(user);
+        userDAO.getAllUsers.mockResolvedValue([user]);
+        const result = await userService.registerUser("testuser", "testpasswd");
+        expect(bcrypt.hash).toHaveBeenCalledTimes(0);
+        expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
+        expect(userDAO.postUser).toHaveBeenCalledTimes(0);
+        expect(result).toBeNull();
+    });
+    test('RegisterUser: Unique username and password, should return true', async () => {
+        bcrypt.hash.mockResolvedValue("h iblkczbvwejrh");
+        userDAO.getAllUsers.mockResolvedValue([]);
+        userDAO.postUser.mockResolvedValue(true);
+        const result = await userService.registerUser("testuser", "testpasswd");
         expect(bcrypt.hash).toHaveBeenCalledTimes(1);
         expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
         expect(userDAO.postUser).toHaveBeenCalledTimes(1);
         expect(result).toBe(true);
     });
-    test('Login with no username or password', async () => {
+    test('RegisterUser: Unique username and password as manager, should return true', async () => {
+        bcrypt.hash.mockResolvedValue("h iblkczbvwejrh");
+        userDAO.getAllUsers.mockResolvedValue([]);
+        userDAO.postUser.mockResolvedValue(true);
+        const result = await userService.registerUser("testuser", "testpasswd", true);
+        expect(bcrypt.hash).toHaveBeenCalledTimes(1);
+        expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
+        expect(userDAO.postUser).toHaveBeenCalledTimes(1);
+        expect(result).toBe(true);
+    });
+});
+
+describe('Login Users', () => {
+    test('LoginUser: No username or password, should return null', async () => {
         const result = await userService.loginUser();
         expect(userDAO.getAllUsers).toHaveBeenCalledTimes(0);
         expect(bcrypt.compare).toHaveBeenCalledTimes(0);
         expect(jwt.sign).toHaveBeenCalledTimes(0);
         expect(result).toBeNull();
     });
-    test('Login with username and password', async () => {
+    test('LoginUser: Username present but no password, should return null', async () => {
+        const result = await userService.loginUser("testuser");
+        expect(userDAO.getAllUsers).toHaveBeenCalledTimes(0);
+        expect(bcrypt.compare).toHaveBeenCalledTimes(0);
+        expect(jwt.sign).toHaveBeenCalledTimes(0);
+        expect(result).toBeNull();
+    });
+    test('LoginUser: Incorrect username, should return null', async () => {
+        const user = {
+            user_id: 0,
+            username: "testuser",
+            password: "testpasswd",
+            role: "employee"
+        };
+        userDAO.getAllUsers.mockResolvedValue([user]);
+        const result = await userService.loginUser("testuser0", "testpasswd");
+        expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
+        expect(bcrypt.compare).toHaveBeenCalledTimes(0);
+        expect(jwt.sign).toHaveBeenCalledTimes(0);
+        expect(result).toBeNull();
+    });
+    test('LoginUser: Incorrect password, should return null', async () => {
+        const user = {
+            user_id: 0,
+            username: "testuser",
+            password: "testpasswd",
+            role: "employee"
+        };
+        userDAO.getAllUsers.mockResolvedValue([user]);
+        bcrypt.compare.mockResolvedValue(false);
+        const result = await userService.loginUser("testuser", "testpass");
+        expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
+        expect(bcrypt.compare).toHaveBeenCalledTimes(1);
+        expect(jwt.sign).toHaveBeenCalledTimes(0);
+        expect(result).toBeNull();
+    });
+    test('LoginUser: Correct username and password, should return token', async () => {
         const user = {
             user_id: 0,
             username: "testuser",
@@ -223,10 +205,52 @@ describe('Register and Login', () => {
         userDAO.getAllUsers.mockResolvedValue([user]);
         bcrypt.compare.mockResolvedValue(true);
         jwt.sign.mockReturnValueOnce(token);
-        const result = await userService.loginUser("testuser", "testpassword");
+        const result = await userService.loginUser("testuser", "testpasswd");
         expect(userDAO.getAllUsers).toHaveBeenCalledTimes(1);
         expect(bcrypt.compare).toHaveBeenCalledTimes(1);
         expect(jwt.sign).toHaveBeenCalledTimes(1);
-        expect(result).toBe(token);
+        expect(result).toStrictEqual(token);
+    });
+});
+
+describe('Authenticating Users', () => {
+    test('AuthenticateUser: No token, should return null', () => {
+        const result = userService.authenticateUser();
+        expect(jwt.verify).toHaveBeenCalledTimes(0);
+        expect(result).toBeNull();
+    });
+    test('AuthenticateUser: Authentication failed, should return null', () => {
+        const token = "ebrwao0gbwerboqa";
+        jwt.verify.mockReturnValueOnce(null);
+        const result = userService.authenticateUser(token);
+        expect(jwt.verify).toHaveBeenCalledTimes(1);
+        expect(result).toBeNull();
+    });
+    test('AuthenticateUser: Authentication passed, should return user', () => {
+        const token = "ebrwao0gbwerboqa";
+        const user = {
+            user_id: 0,
+            username: "testuser",
+            password: "testpassword",
+            role: "employee"
+        };
+        jwt.verify.mockReturnValueOnce(user);
+        const result = userService.authenticateUser(token);
+        expect(jwt.verify).toHaveBeenCalledTimes(1);
+        expect(result).toStrictEqual(user);
+    });
+});
+
+describe('Deleting Users', () => {
+    test('DeleteUser: No user id, should return null', async () => {
+        const result = await userService.deleteUser();
+        expect(userDAO.deleteUser).toHaveBeenCalledTimes(0);
+        expect(result).toBeNull();
+    });
+    test('DeleteUser: User id provided, should return true', async () => {
+        userDAO.deleteUser.mockResolvedValue(true);
+        const result = await userService.deleteUser(0);
+        expect(userDAO.deleteUser).toHaveBeenCalledTimes(1);
+        expect(result).toBe(true);
     });
 });

@@ -7,14 +7,14 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-describe('Getting All Tickets', () => {
-    test('Empty ticket list', async () => {
+describe('Getting Tickets', () => {
+    test('GetAllTickets: Should return no tickets', async () => {
         ticketDAO.getAllTickets.mockResolvedValue([]);
         const result = await ticketService.getAllTickets();
         expect(ticketDAO.getAllTickets).toHaveBeenCalledTimes(1);
-        expect(result).toStrictEqual([]);
+        expect(result).toHaveLength(0);
     });
-    test('One ticket', async () => {
+    test('GetAllTickets: Should return one ticket', async () => {
         const ticket = {
             ticket_id: 0,
             amount: 100,
@@ -25,10 +25,10 @@ describe('Getting All Tickets', () => {
         ticketDAO.getAllTickets.mockResolvedValue([ticket]);
         const result = await ticketService.getAllTickets();
         expect(ticketDAO.getAllTickets).toHaveBeenCalledTimes(1);
-        expect(result.length).toBe(1);
+        expect(result).toHaveLength(1);
         expect(result[0]).toStrictEqual(ticket);
     });
-    test('Two tickets', async () => {
+    test('GetAllTickets: Should return two tickets', async () => {
         const ticket0 = {
             ticket_id: 0,
             amount: 100,
@@ -46,19 +46,16 @@ describe('Getting All Tickets', () => {
         ticketDAO.getAllTickets.mockResolvedValue([ticket0, ticket1]);
         const result = await ticketService.getAllTickets();
         expect(ticketDAO.getAllTickets).toHaveBeenCalledTimes(1);
-        expect(result.length).toBe(2);
+        expect(result).toHaveLength(2);
         expect(result[0]).toStrictEqual(ticket0);
         expect(result[1]).toStrictEqual(ticket1);
     });
-});
-
-describe('Getting One Ticket', () => {
-    test('No ticket id', async () => {
+    test('GetTicket: No ticket id, should return null', async () => {
         const result = await ticketService.getTicket();
         expect(ticketDAO.getTicket).toHaveBeenCalledTimes(0);
         expect(result).toBeNull();
     });
-    test('Ticket id', async () => {
+    test('GetTicket: Ticket id present, should return ticket', async () => {
         const ticket = {
             ticket_id: 0,
             amount: 100,
@@ -71,15 +68,12 @@ describe('Getting One Ticket', () => {
         expect(ticketDAO.getTicket).toHaveBeenCalledTimes(1);
         expect(result).toStrictEqual(ticket);
     });
-});
-
-describe('Getting a Group of Tickets', () => {
-    test('No submitter', async () => {
+    test('GetTicketBySubmitter: No submitter present, should return null', async () => {
         const result = await ticketService.getTicketsBySubmitter();
         expect(ticketDAO.getAllTickets).toHaveBeenCalledTimes(0);
         expect(result).toBeNull();
     });
-    test('Submitter provided', async () => {
+    test('GetTicketBySubmitter: Submitter provided, should return one ticket', async () => {
         const ticket0 = {
             ticket_id: 0,
             amount: 100,
@@ -97,15 +91,15 @@ describe('Getting a Group of Tickets', () => {
         ticketDAO.getAllTickets.mockResolvedValue([ticket0, ticket1]);
         const result = await ticketService.getTicketsBySubmitter("testuser0");
         expect(ticketDAO.getAllTickets).toHaveBeenCalledTimes(1);
-        expect(result.length).toBe(1);
+        expect(result).toHaveLength(1);
         expect(result[0]).toStrictEqual(ticket0);
     });
-    test('No status', async () => {
+    test('GetTicketByStatus: No status, should return null', async () => {
         const result = await ticketService.getTicketsByStatus();
         expect(ticketDAO.getAllTickets).toHaveBeenCalledTimes(0);
         expect(result).toBeNull();
     });
-    test('Status provided', async () => {
+    test('GetTicketByStatus: Status provided, should return one ticket', async () => {
         const ticket0 = {
             ticket_id: 0,
             amount: 100,
@@ -136,13 +130,13 @@ describe('Getting a Group of Tickets', () => {
 });
 
 describe('Adding Tickets', () => {
-    test('No ticket data', async () => {
+    test('AddTicket: No ticket data, should return null', async () => {
         const result = await ticketService.addTicket();
         expect(ticketDAO.getAllTickets).toHaveBeenCalledTimes(0);
         expect(ticketDAO.postTicket).toHaveBeenCalledTimes(0);
         expect(result).toBeNull();
     });
-    test('Ticket data provided', async () => {
+    test('AddTicket: Ticket data provided, should return true', async () => {
         const ticket = {
             amount: 100,
             description: "testdesc",
@@ -157,85 +151,61 @@ describe('Adding Tickets', () => {
     });
 });
 
-describe('Updating Tickets', () => {
-    test('No ticket id or new ticket data', async () => {
-        const result = await ticketService.updateTicket();
+describe('Processing Tickets', () => {
+    test('ProcessTicket: No ticket id, should return null', async () => {
+        const result = await ticketService.processTicket();
+        expect(ticketDAO.getTicket).toHaveBeenCalledTimes(0);
         expect(ticketDAO.updateTicket).toHaveBeenCalledTimes(0);
         expect(result).toBeNull();
     });
-    test('Ticket id but no new ticket data', async () => {
-        const result = await ticketService.updateTicket(0);
+    test('ProcessTicket: Ticket id but no approved flag, should return null', async () => {
+        const result = await ticketService.processTicket(0);
+        expect(ticketDAO.getTicket).toHaveBeenCalledTimes(0);
         expect(ticketDAO.updateTicket).toHaveBeenCalledTimes(0);
         expect(result).toBeNull();
     });
-    test('Ticket id and new data', async () => {
-        ticketDAO.updateTicket.mockResolvedValue(true);
-        const newTicket = {
-            amount: 200,
-            description: "pibager",
-            submitted_by: "mytr5w4"
+    test('ProcessTicket: Ticket id provided, should be approved', async () => {
+        const ticket = {
+            ticket_id: 0,
+            amount: 100,
+            description: "testdesc",
+            status: "PENDING",
+            submitted_by: "testuser"
         };
-        const result = await ticketService.updateTicket(0, newTicket);
+        ticketDAO.getAllTickets.mockResolvedValue([ticket]);
+        ticketDAO.updateTicket.mockResolvedValue(true);
+        const result = await ticketService.processTicket(0, true);
+        expect(ticketDAO.getAllTickets).toHaveBeenCalledTimes(1);
+        expect(ticketDAO.updateTicket).toHaveBeenCalledTimes(1);
+        expect(result).toBe(true);
+    });
+    test('ProcessTicket: Ticket id provided, should be denied', async () => {
+        const ticket = {
+            ticket_id: 0,
+            amount: 100,
+            description: "testdesc",
+            status: "PENDING",
+            submitted_by: "testuser"
+        };
+        ticketDAO.getAllTickets.mockResolvedValue([ticket]);
+        ticketDAO.updateTicket.mockResolvedValue(true);
+        const result = await ticketService.processTicket(0, true);
+        expect(ticketDAO.getAllTickets).toHaveBeenCalledTimes(1);
         expect(ticketDAO.updateTicket).toHaveBeenCalledTimes(1);
         expect(result).toBe(true);
     });
 });
 
 describe('Deleting Tickets', () => {
-    test('No ticket id', async () => {
+    test('DeleteTicket: No ticket id, should return null', async () => {
         const result = await ticketService.deleteTicket();
         expect(ticketDAO.deleteTicket).toHaveBeenCalledTimes(0);
         expect(result).toBeNull();
     });
-    test('Ticket id provided', async () => {
+    test('DeleteTicket: Ticket id provided, should return true', async () => {
         ticketDAO.deleteTicket.mockResolvedValue(true);
         const result = await ticketService.deleteTicket(0);
         expect(ticketDAO.deleteTicket).toHaveBeenCalledTimes(1);
-        expect(result).toBe(true);
-    });
-});
-
-describe('Processing Tickets', () => {
-    test('No ticket id', async () => {
-        const result = await ticketService.processTicket();
-        expect(ticketDAO.getTicket).toHaveBeenCalledTimes(0);
-        expect(ticketDAO.updateTicket).toHaveBeenCalledTimes(0);
-        expect(result).toBeNull();
-    });
-    test('Ticket id provided but no approved flag', async () => {
-        const result = await ticketService.processTicket(0);
-        expect(ticketDAO.getTicket).toHaveBeenCalledTimes(0);
-        expect(ticketDAO.updateTicket).toHaveBeenCalledTimes(0);
-        expect(result).toBeNull();
-    });
-    test('Ticket id provided, is approved', async () => {
-        const ticket = {
-            ticket_id: 0,
-            amount: 100,
-            description: "testdesc",
-            status: "PENDING",
-            submitted_by: "testuser"
-        };
-        ticketDAO.getTicket.mockResolvedValue(ticket);
-        ticketDAO.updateTicket.mockResolvedValue(true);
-        const result = await ticketService.processTicket(0, true);
-        expect(ticketDAO.getTicket).toHaveBeenCalledTimes(1);
-        expect(ticketDAO.updateTicket).toHaveBeenCalledTimes(1);
-        expect(result).toBe(true);
-    });
-    test('Ticket id provided, is denied', async () => {
-        const ticket = {
-            ticket_id: 0,
-            amount: 100,
-            description: "testdesc",
-            status: "PENDING",
-            submitted_by: "testuser"
-        };
-        ticketDAO.getTicket.mockResolvedValue(ticket);
-        ticketDAO.updateTicket.mockResolvedValue(true);
-        const result = await ticketService.processTicket(0, true);
-        expect(ticketDAO.getTicket).toHaveBeenCalledTimes(1);
-        expect(ticketDAO.updateTicket).toHaveBeenCalledTimes(1);
         expect(result).toBe(true);
     });
 });
