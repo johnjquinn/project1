@@ -58,6 +58,7 @@ router.post('/', authToken, async (req, res) => {
 router.put('/', authManagerToken, async (req, res) => {
     const ticket_id = req.body.ticket_id;
     const approved = req.body.approved;
+    if(!ticket_id || !approved) return res.status(400).json({message: "You must provide a ticket id and approved flag"});
     const data = await ticketService.processTicket(ticket_id, approved);
     if(!data) return res.status(400).json({message: `Ticket has already been processed`, receivedData: req.body});
     return res.status(200).json({message: `Ticket has been ${approved ? "APPROVED" : "DENIED"}`});
